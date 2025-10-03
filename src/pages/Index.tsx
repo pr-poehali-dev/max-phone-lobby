@@ -23,6 +23,7 @@ const apps: AppItem[] = [
 
 const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [openedApp, setOpenedApp] = useState<AppItem | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -38,8 +39,16 @@ const Index = () => {
     });
   };
 
+  const handleAppClick = (app: AppItem) => {
+    setOpenedApp(app);
+  };
+
+  const handleCloseApp = () => {
+    setOpenedApp(null);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FBBC04] via-[#34A853] via-[#4285F4] to-[#EA4335] flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-[#FBBC04] via-[#34A853] via-[#4285F4] to-[#EA4335] flex flex-col relative">
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full p-6">
         <div className="flex items-center justify-between text-white mb-12 animate-fade-in">
           <div className="flex items-center gap-2">
@@ -59,6 +68,7 @@ const Index = () => {
           {apps.map((app, index) => (
             <button
               key={app.id}
+              onClick={() => handleAppClick(app)}
               className="flex flex-col items-center gap-3 group animate-fade-in hover-scale"
               style={{ animationDelay: `${index * 50}ms` }}
             >
@@ -79,7 +89,10 @@ const Index = () => {
           <button className="w-12 h-12 rounded-full bg-white/30 flex items-center justify-center hover-scale">
             <Icon name="Grid3x3" size={24} className="text-white" />
           </button>
-          <button className="w-12 h-12 rounded-full bg-white/30 flex items-center justify-center hover-scale">
+          <button 
+            onClick={handleCloseApp}
+            className="w-12 h-12 rounded-full bg-white/30 flex items-center justify-center hover-scale"
+          >
             <Icon name="Home" size={24} className="text-white" />
           </button>
           <button className="w-12 h-12 rounded-full bg-white/30 flex items-center justify-center hover-scale">
@@ -87,6 +100,50 @@ const Index = () => {
           </button>
         </div>
       </div>
+
+      {openedApp && (
+        <div 
+          className="absolute inset-0 flex flex-col animate-scale-up"
+          style={{ backgroundColor: openedApp.color }}
+        >
+          <div className="max-w-md mx-auto w-full flex flex-col h-full">
+            <div className="flex items-center justify-between p-6 text-white animate-slide-down">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{formatTime(currentTime)}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Icon name="Signal" size={16} className="opacity-90" />
+                <Icon name="Wifi" size={16} className="opacity-90" />
+                <div className="flex items-center gap-1">
+                  <Icon name="Battery" size={16} className="opacity-90" />
+                  <span className="text-xs font-medium">85%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-white">
+              <div className="w-32 h-32 rounded-3xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-8 animate-scale-up" style={{ animationDelay: '100ms' }}>
+                <Icon name={openedApp.icon} size={64} className="text-white" />
+              </div>
+              <h1 className="text-3xl font-bold mb-4 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                {openedApp.name}
+              </h1>
+              <p className="text-white/80 text-center animate-fade-in" style={{ animationDelay: '300ms' }}>
+                Приложение запущено
+              </p>
+            </div>
+
+            <div className="p-6">
+              <button 
+                onClick={handleCloseApp}
+                className="w-full py-4 bg-white/20 backdrop-blur-md rounded-2xl text-white font-medium hover-scale"
+              >
+                Закрыть приложение
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
