@@ -29,6 +29,7 @@ const apps: AppItem[] = [
   { id: 'maps', name: 'Карты', icon: 'MapPin', color: '#34A853' },
   { id: 'music', name: 'Музыка', icon: 'Music', color: '#EA4335' },
   { id: 'play', name: 'Play Маркет', icon: 'Play', color: '#01875f' },
+  { id: 'max', name: 'MAX', icon: 'Send', color: '#7C3AED' },
 ];
 
 const notifications: Notification[] = [
