@@ -43,6 +43,17 @@ const Index = () => {
     });
   };
 
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('ru-RU', { 
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  const getDayOfWeek = (date: Date) => {
+    return date.toLocaleDateString('ru-RU', { weekday: 'short' });
+  };
+
   const handleAppClick = (app: AppItem) => {
     setOpenedApp(app);
     setSwipeOffset(0);
@@ -83,7 +94,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FBBC04] via-[#34A853] via-[#4285F4] to-[#EA4335] flex flex-col relative overflow-hidden">
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full p-6">
-        <div className="flex items-center justify-between text-white mb-12 animate-fade-in">
+        <div className="flex items-center justify-between text-white mb-8 animate-fade-in">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{formatTime(currentTime)}</span>
           </div>
@@ -97,13 +108,52 @@ const Index = () => {
           </div>
         </div>
 
+        <div className="space-y-4 mb-6">
+          <div className="bg-white/25 backdrop-blur-md rounded-3xl p-6 shadow-xl animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-white text-2xl font-medium">Москва</h3>
+                <p className="text-white/80 text-sm">{getDayOfWeek(currentTime)}, {formatDate(currentTime)}</p>
+              </div>
+              <Icon name="CloudSun" size={48} className="text-white" />
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-white text-5xl font-light">22°</span>
+              <span className="text-white/80 text-lg">/ 18°</span>
+            </div>
+          </div>
+
+          <div className="bg-white/25 backdrop-blur-md rounded-3xl p-5 shadow-xl animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-white font-medium flex items-center gap-2">
+                <Icon name="Calendar" size={20} />
+                Предстоящее событие
+              </h3>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-start gap-3">
+                <div className="bg-[#4285F4] rounded-xl p-2 flex-shrink-0">
+                  <div className="text-white text-center">
+                    <div className="text-xs font-medium">ОКТ</div>
+                    <div className="text-lg font-bold">{currentTime.getDate()}</div>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-medium">Встреча с командой</p>
+                  <p className="text-white/70 text-sm">15:00 - 16:00</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="flex-1 grid grid-cols-3 gap-6 content-start mb-20">
           {apps.map((app, index) => (
             <button
               key={app.id}
               onClick={() => handleAppClick(app)}
               className="flex flex-col items-center gap-3 group animate-fade-in hover-scale"
-              style={{ animationDelay: `${index * 50}ms` }}
+              style={{ animationDelay: `${(index + 3) * 50}ms` }}
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-active:scale-95"
