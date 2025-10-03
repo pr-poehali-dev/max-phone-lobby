@@ -8,6 +8,16 @@ interface AppItem {
   color: string;
 }
 
+interface Notification {
+  id: number;
+  app: string;
+  title: string;
+  message: string;
+  time: string;
+  icon: string;
+  color: string;
+}
+
 const apps: AppItem[] = [
   { id: 'camera', name: 'Камера', icon: 'Camera', color: '#5F6368' },
   { id: 'messages', name: 'Сообщения', icon: 'MessageSquare', color: '#4285F4' },
@@ -21,11 +31,19 @@ const apps: AppItem[] = [
   { id: 'play', name: 'Play Маркет', icon: 'Play', color: '#01875f' },
 ];
 
+const notifications: Notification[] = [
+  { id: 1, app: 'Сообщения', title: 'Новое сообщение', message: 'Привет! Как дела?', time: '5 мин назад', icon: 'MessageSquare', color: '#4285F4' },
+  { id: 2, app: 'Почта', title: 'Gmail', message: 'У вас 3 новых письма', time: '20 мин назад', icon: 'Mail', color: '#EA4335' },
+  { id: 3, app: 'Календарь', title: 'Напоминание', message: 'Встреча через 1 час', time: '1 ч назад', icon: 'Calendar', color: '#4285F4' },
+];
+
 const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [openedApp, setOpenedApp] = useState<AppItem | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
+  const [notificationOffset, setNotificationOffset] = useState(-100);
+  const [showNotifications, setShowNotifications] = useState(false);
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
 
@@ -91,8 +109,46 @@ const Index = () => {
     }
   };
 
+  const handleNotificationTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleNotificationTouchMove = (e: React.TouchEvent) => {
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartX.current);
+    
+    if (touchStartY.current < 100 && deltaX < 50) {
+      const progress = Math.max(0, Math.min(100, (deltaY / window.innerHeight) * 100));
+      setNotificationOffset(progress - 100);
+      if (progress > 10) {
+        setShowNotifications(true);
+      }
+    }
+  };
+
+  const handleNotificationTouchEnd = () => {
+    if (notificationOffset > -50) {
+      setNotificationOffset(0);
+      setShowNotifications(true);
+    } else {
+      setNotificationOffset(-100);
+      setShowNotifications(false);
+    }
+  };
+
+  const closeNotifications = () => {
+    setNotificationOffset(-100);
+    setTimeout(() => setShowNotifications(false), 300);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FBBC04] via-[#34A853] via-[#4285F4] to-[#EA4335] flex flex-col relative overflow-hidden">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-[#FBBC04] via-[#34A853] via-[#4285F4] to-[#EA4335] flex flex-col relative overflow-hidden"
+      onTouchStart={handleNotificationTouchStart}
+      onTouchMove={handleNotificationTouchMove}
+      onTouchEnd={handleNotificationTouchEnd}
+    >
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full p-6">
         <div className="flex items-center justify-between text-white mb-8 animate-fade-in">
           <div className="flex items-center gap-2">
@@ -183,6 +239,61 @@ const Index = () => {
           </button>
         </div>
       </div>
+
+      {showNotifications && (
+        <div 
+          className="absolute inset-0 bg-gradient-to-b from-black/95 to-black/90 backdrop-blur-xl transition-transform duration-300 ease-out z-50"
+          style={{ transform: `translateY(${notificationOffset}%)` }}
+        >
+          <div className="max-w-md mx-auto w-full h-full flex flex-col p-6">
+            <div className="flex items-center justify-between text-white mb-8">
+              <div>
+                <h2 className="text-2xl font-bold">Уведомления</h2>
+                <p className="text-white/70 text-sm">{formatTime(currentTime)}</p>
+              </div>
+              <button onClick={closeNotifications} className="hover-scale">
+                <Icon name="X" size={24} className="text-white/80" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {notifications.map((notif, index) => (
+                <div 
+                  key={notif.id}
+                  className="bg-white/10 backdrop-blur-md rounded-2xl p-4 animate-fade-in hover-scale"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div 
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: notif.color }}
+                    >
+                      <Icon name={notif.icon} size={24} className="text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-white/60 text-xs font-medium">{notif.app}</p>
+                        <p className="text-white/40 text-xs">{notif.time}</p>
+                      </div>
+                      <p className="text-white font-medium mb-1">{notif.title}</p>
+                      <p className="text-white/70 text-sm">{notif.message}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <button 
+                onClick={closeNotifications}
+                className="w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl text-white font-medium hover-scale"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {openedApp && (
         <div 
