@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/ui/icon';
 
 interface AppItem {
@@ -24,6 +24,10 @@ const apps: AppItem[] = [
 const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [openedApp, setOpenedApp] = useState<AppItem | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isClosing, setIsClosing] = useState(false);
+  const touchStartY = useRef(0);
+  const touchStartX = useRef(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -41,14 +45,43 @@ const Index = () => {
 
   const handleAppClick = (app: AppItem) => {
     setOpenedApp(app);
+    setSwipeOffset(0);
+    setIsClosing(false);
   };
 
   const handleCloseApp = () => {
-    setOpenedApp(null);
+    setIsClosing(true);
+    setTimeout(() => {
+      setOpenedApp(null);
+      setSwipeOffset(0);
+      setIsClosing(false);
+    }, 300);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartX.current);
+    
+    if (deltaY > 0 && deltaX < 50) {
+      setSwipeOffset(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeOffset > 150) {
+      handleCloseApp();
+    } else {
+      setSwipeOffset(0);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FBBC04] via-[#34A853] via-[#4285F4] to-[#EA4335] flex flex-col relative">
+    <div className="min-h-screen bg-gradient-to-br from-[#FBBC04] via-[#34A853] via-[#4285F4] to-[#EA4335] flex flex-col relative overflow-hidden">
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full p-6">
         <div className="flex items-center justify-between text-white mb-12 animate-fade-in">
           <div className="flex items-center gap-2">
@@ -103,8 +136,16 @@ const Index = () => {
 
       {openedApp && (
         <div 
-          className="absolute inset-0 flex flex-col animate-scale-up"
-          style={{ backgroundColor: openedApp.color }}
+          className={`absolute inset-0 flex flex-col ${isClosing ? 'animate-scale-out' : 'animate-scale-up'}`}
+          style={{ 
+            backgroundColor: openedApp.color,
+            transform: `translateY(${swipeOffset}px) scale(${1 - swipeOffset / 1000})`,
+            transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none',
+            opacity: 1 - swipeOffset / 500
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <div className="max-w-md mx-auto w-full flex flex-col h-full">
             <div className="flex items-center justify-between p-6 text-white animate-slide-down">
@@ -128,8 +169,11 @@ const Index = () => {
               <h1 className="text-3xl font-bold mb-4 animate-fade-in" style={{ animationDelay: '200ms' }}>
                 {openedApp.name}
               </h1>
-              <p className="text-white/80 text-center animate-fade-in" style={{ animationDelay: '300ms' }}>
+              <p className="text-white/80 text-center mb-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
                 Приложение запущено
+              </p>
+              <p className="text-white/60 text-sm text-center animate-fade-in" style={{ animationDelay: '400ms' }}>
+                💡 Свайпните вниз, чтобы закрыть
               </p>
             </div>
 
