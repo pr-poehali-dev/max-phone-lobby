@@ -18,6 +18,7 @@ const apps: AppItem[] = [
   { id: 'calendar', name: 'Календарь', icon: 'Calendar', color: '#4285F4' },
   { id: 'maps', name: 'Карты', icon: 'MapPin', color: '#34A853' },
   { id: 'music', name: 'Музыка', icon: 'Music', color: '#EA4335' },
+  { id: 'play', name: 'Play Маркет', icon: 'Play', color: '#01875f' },
 ];
 
 const Index = () => {
