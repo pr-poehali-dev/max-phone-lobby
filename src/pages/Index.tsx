@@ -28,6 +28,13 @@ interface Chat {
   online: boolean;
 }
 
+interface Message {
+  id: number;
+  text: string;
+  time: string;
+  isMine: boolean;
+}
+
 const apps: AppItem[] = [
   { id: 'camera', name: 'Камера', icon: 'Camera', color: '#5F6368' },
   { id: 'messages', name: 'Сообщения', icon: 'MessageSquare', color: '#4285F4' },
@@ -56,6 +63,14 @@ const chats: Chat[] = [
   { id: 5, name: 'Проект 2024', lastMessage: 'Встреча перенесена на 15:00', time: 'Вчера', unread: 0, avatar: '📊', online: true },
 ];
 
+const chatMessages: Message[] = [
+  { id: 1, text: 'Привет! Как проходит работа над проектом?', time: '14:15', isMine: false },
+  { id: 2, text: 'Привет! Всё отлично, почти закончил дизайн', time: '14:18', isMine: true },
+  { id: 3, text: 'Супер! А когда сможешь показать?', time: '14:20', isMine: false },
+  { id: 4, text: 'Думаю завтра утром уже будет готово', time: '14:21', isMine: true },
+  { id: 5, text: 'Отлично, увидимся завтра!', time: '14:23', isMine: false },
+];
+
 const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [openedApp, setOpenedApp] = useState<AppItem | null>(null);
@@ -63,8 +78,11 @@ const Index = () => {
   const [isClosing, setIsClosing] = useState(false);
   const [notificationOffset, setNotificationOffset] = useState(-100);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [messageText, setMessageText] = useState('');
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -72,6 +90,12 @@ const Index = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (selectedChat) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [selectedChat]);
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('ru-RU', { 
@@ -95,6 +119,7 @@ const Index = () => {
     setOpenedApp(app);
     setSwipeOffset(0);
     setIsClosing(false);
+    setSelectedChat(null);
   };
 
   const handleCloseApp = () => {
@@ -103,7 +128,16 @@ const Index = () => {
       setOpenedApp(null);
       setSwipeOffset(0);
       setIsClosing(false);
+      setSelectedChat(null);
     }, 300);
+  };
+
+  const handleChatClick = (chat: Chat) => {
+    setSelectedChat(chat);
+  };
+
+  const handleBackToChats = () => {
+    setSelectedChat(null);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -165,6 +199,72 @@ const Index = () => {
     if (!openedApp) return null;
 
     if (openedApp.id === 'max') {
+      if (selectedChat) {
+        return (
+          <div className="max-w-md mx-auto w-full flex flex-col h-full bg-gray-50">
+            <div className="bg-[#7C3AED] p-4 text-white animate-slide-down">
+              <div className="flex items-center gap-3">
+                <button onClick={handleBackToChats} className="hover-scale">
+                  <Icon name="ArrowLeft" size={24} />
+                </button>
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-300 to-purple-500 flex items-center justify-center text-xl">
+                    {selectedChat.avatar}
+                  </div>
+                  {selectedChat.online && (
+                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-[#7C3AED] rounded-full"></div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h2 className="font-semibold">{selectedChat.name}</h2>
+                  <p className="text-xs text-purple-200">{selectedChat.online ? 'в сети' : 'был(а) недавно'}</p>
+                </div>
+                <button className="hover-scale">
+                  <Icon name="Phone" size={20} />
+                </button>
+                <button className="hover-scale">
+                  <Icon name="MoreVertical" size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatMessages.map((msg, index) => (
+                <div 
+                  key={msg.id}
+                  className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'} animate-fade-in`}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className={`max-w-[75%] ${msg.isMine ? 'bg-[#7C3AED] text-white' : 'bg-white text-gray-900'} rounded-2xl px-4 py-2 shadow-sm`}>
+                    <p className="text-sm">{msg.text}</p>
+                    <p className={`text-xs mt-1 ${msg.isMine ? 'text-purple-200' : 'text-gray-500'}`}>{msg.time}</p>
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="p-4 bg-white border-t border-gray-200">
+              <div className="flex items-center gap-2">
+                <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover-scale">
+                  <Icon name="Plus" size={20} className="text-gray-600" />
+                </button>
+                <input
+                  type="text"
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Сообщение..."
+                  className="flex-1 px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <button className="w-10 h-10 rounded-full bg-[#7C3AED] flex items-center justify-center hover-scale">
+                  <Icon name="Send" size={18} className="text-white" />
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="max-w-md mx-auto w-full flex flex-col h-full bg-white">
           <div className="bg-[#7C3AED] p-4 text-white animate-slide-down">
@@ -199,9 +299,10 @@ const Index = () => {
 
           <div className="flex-1 overflow-y-auto">
             {chats.map((chat, index) => (
-              <div 
+              <button
                 key={chat.id}
-                className="flex items-center gap-3 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors animate-fade-in"
+                onClick={() => handleChatClick(chat)}
+                className="w-full flex items-center gap-3 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors animate-fade-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="relative">
@@ -212,7 +313,7 @@ const Index = () => {
                     <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-left">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-semibold text-gray-900 truncate">{chat.name}</h3>
                     <span className="text-xs text-gray-500">{chat.time}</span>
@@ -224,7 +325,7 @@ const Index = () => {
                     <span className="text-xs font-bold text-white">{chat.unread}</span>
                   </div>
                 )}
-              </div>
+              </button>
             ))}
           </div>
 
