@@ -18,6 +18,16 @@ interface Notification {
   color: string;
 }
 
+interface Chat {
+  id: number;
+  name: string;
+  lastMessage: string;
+  time: string;
+  unread: number;
+  avatar: string;
+  online: boolean;
+}
+
 const apps: AppItem[] = [
   { id: 'camera', name: 'Камера', icon: 'Camera', color: '#5F6368' },
   { id: 'messages', name: 'Сообщения', icon: 'MessageSquare', color: '#4285F4' },
@@ -36,6 +46,14 @@ const notifications: Notification[] = [
   { id: 1, app: 'Сообщения', title: 'Новое сообщение', message: 'Привет! Как дела?', time: '5 мин назад', icon: 'MessageSquare', color: '#4285F4' },
   { id: 2, app: 'Почта', title: 'Gmail', message: 'У вас 3 новых письма', time: '20 мин назад', icon: 'Mail', color: '#EA4335' },
   { id: 3, app: 'Календарь', title: 'Напоминание', message: 'Встреча через 1 час', time: '1 ч назад', icon: 'Calendar', color: '#4285F4' },
+];
+
+const chats: Chat[] = [
+  { id: 1, name: 'Анна Петрова', lastMessage: 'Отлично, увидимся завтра!', time: '14:23', unread: 2, avatar: '👩', online: true },
+  { id: 2, name: 'Команда MAX', lastMessage: 'Новые функции уже доступны', time: '13:45', unread: 0, avatar: '🚀', online: true },
+  { id: 3, name: 'Алексей Иванов', lastMessage: 'Документы отправил', time: '12:30', unread: 0, avatar: '👨', online: false },
+  { id: 4, name: 'Мария Сидорова', lastMessage: 'Спасибо за помощь!', time: 'Вчера', unread: 1, avatar: '👩‍💼', online: false },
+  { id: 5, name: 'Проект 2024', lastMessage: 'Встреча перенесена на 15:00', time: 'Вчера', unread: 0, avatar: '📊', online: true },
 ];
 
 const Index = () => {
@@ -141,6 +159,126 @@ const Index = () => {
   const closeNotifications = () => {
     setNotificationOffset(-100);
     setTimeout(() => setShowNotifications(false), 300);
+  };
+
+  const renderAppContent = () => {
+    if (!openedApp) return null;
+
+    if (openedApp.id === 'max') {
+      return (
+        <div className="max-w-md mx-auto w-full flex flex-col h-full bg-white">
+          <div className="bg-[#7C3AED] p-4 text-white animate-slide-down">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <button onClick={handleCloseApp} className="hover-scale">
+                  <Icon name="ArrowLeft" size={24} />
+                </button>
+                <h1 className="text-xl font-bold">MAX</h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="hover-scale">
+                  <Icon name="Search" size={20} />
+                </button>
+                <button className="hover-scale">
+                  <Icon name="MoreVertical" size={20} />
+                </button>
+              </div>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              <button className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium whitespace-nowrap hover-scale">
+                Все чаты
+              </button>
+              <button className="px-4 py-2 bg-white/10 rounded-full text-sm font-medium whitespace-nowrap hover-scale">
+                Непрочитанные
+              </button>
+              <button className="px-4 py-2 bg-white/10 rounded-full text-sm font-medium whitespace-nowrap hover-scale">
+                Группы
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {chats.map((chat, index) => (
+              <div 
+                key={chat.id}
+                className="flex items-center gap-3 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-2xl">
+                    {chat.avatar}
+                  </div>
+                  {chat.online && (
+                    <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-gray-900 truncate">{chat.name}</h3>
+                    <span className="text-xs text-gray-500">{chat.time}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 truncate">{chat.lastMessage}</p>
+                </div>
+                {chat.unread > 0 && (
+                  <div className="w-6 h-6 bg-[#7C3AED] rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">{chat.unread}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="p-4 bg-white border-t border-gray-100">
+            <button className="w-full py-3 bg-[#7C3AED] text-white rounded-2xl font-medium hover-scale flex items-center justify-center gap-2">
+              <Icon name="Plus" size={20} />
+              Новый чат
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-w-md mx-auto w-full flex flex-col h-full">
+        <div className="flex items-center justify-between p-6 text-white animate-slide-down">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{formatTime(currentTime)}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Icon name="Signal" size={16} className="opacity-90" />
+            <Icon name="Wifi" size={16} className="opacity-90" />
+            <div className="flex items-center gap-1">
+              <Icon name="Battery" size={16} className="opacity-90" />
+              <span className="text-xs font-medium">85%</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-white">
+          <div className="w-32 h-32 rounded-3xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-8 animate-scale-up" style={{ animationDelay: '100ms' }}>
+            <Icon name={openedApp.icon} size={64} className="text-white" />
+          </div>
+          <h1 className="text-3xl font-bold mb-4 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            {openedApp.name}
+          </h1>
+          <p className="text-white/80 text-center mb-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
+            Приложение запущено
+          </p>
+          <p className="text-white/60 text-sm text-center animate-fade-in" style={{ animationDelay: '400ms' }}>
+            💡 Свайпните вниз, чтобы закрыть
+          </p>
+        </div>
+
+        <div className="p-6">
+          <button 
+            onClick={handleCloseApp}
+            className="w-full py-4 bg-white/20 backdrop-blur-md rounded-2xl text-white font-medium hover-scale"
+          >
+            Закрыть приложение
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -300,7 +438,7 @@ const Index = () => {
         <div 
           className={`absolute inset-0 flex flex-col ${isClosing ? 'animate-scale-out' : 'animate-scale-up'}`}
           style={{ 
-            backgroundColor: openedApp.color,
+            backgroundColor: openedApp.id === 'max' ? '#FFFFFF' : openedApp.color,
             transform: `translateY(${swipeOffset}px) scale(${1 - swipeOffset / 1000})`,
             transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none',
             opacity: 1 - swipeOffset / 500
@@ -309,45 +447,7 @@ const Index = () => {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="max-w-md mx-auto w-full flex flex-col h-full">
-            <div className="flex items-center justify-between p-6 text-white animate-slide-down">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{formatTime(currentTime)}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Icon name="Signal" size={16} className="opacity-90" />
-                <Icon name="Wifi" size={16} className="opacity-90" />
-                <div className="flex items-center gap-1">
-                  <Icon name="Battery" size={16} className="opacity-90" />
-                  <span className="text-xs font-medium">85%</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-white">
-              <div className="w-32 h-32 rounded-3xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-8 animate-scale-up" style={{ animationDelay: '100ms' }}>
-                <Icon name={openedApp.icon} size={64} className="text-white" />
-              </div>
-              <h1 className="text-3xl font-bold mb-4 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                {openedApp.name}
-              </h1>
-              <p className="text-white/80 text-center mb-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
-                Приложение запущено
-              </p>
-              <p className="text-white/60 text-sm text-center animate-fade-in" style={{ animationDelay: '400ms' }}>
-                💡 Свайпните вниз, чтобы закрыть
-              </p>
-            </div>
-
-            <div className="p-6">
-              <button 
-                onClick={handleCloseApp}
-                className="w-full py-4 bg-white/20 backdrop-blur-md rounded-2xl text-white font-medium hover-scale"
-              >
-                Закрыть приложение
-              </button>
-            </div>
-          </div>
+          {renderAppContent()}
         </div>
       )}
     </div>
